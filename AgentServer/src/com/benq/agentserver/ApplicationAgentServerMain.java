@@ -29,10 +29,11 @@ public class ApplicationAgentServerMain {
     System.out.println("Started agent System");
 
     //to find remote
+    final ActorRef loginActor = system.actorOf(
+        Props.create(LookupActor.class, Constant.LoginRemotePath), "lookupActorLoginRemote");
 
-    final String path = "akka.tcp://"+ Constant.LoginActorSysName+"@127.0.0.1:2552/user/"+Constant.LoginActorRemoteName;
-    final ActorRef actor = system.actorOf(
-        Props.create(LookupActor.class, path), "lookupActor");
+      final ActorRef matchActor = system.actorOf(
+              Props.create(LookupActor.class, Constant.MatchRemotePath), "lookupActorMatchRemote");
 
     System.out.println("Started LookupSystem");
     final Random r = new Random();
@@ -40,12 +41,15 @@ public class ApplicationAgentServerMain {
         Duration.create(1, SECONDS), new Runnable() {
           @Override
           public void run() {
-            if (r.nextInt(100) % 2 == 0) {
-              actor.tell(new Op.Add(r.nextInt(100), r.nextInt(100)), null);
-            } else {
-              actor.tell(new Op.Subtract(r.nextInt(100), r.nextInt(100)), null);
+            if (r.nextInt(100) % 4 == 0) {
+                loginActor.tell(new Op.Add(r.nextInt(100), r.nextInt(100)), null);
+            } else if (r.nextInt(100) % 4 == 1){
+                loginActor.tell(new Op.Subtract(r.nextInt(100), r.nextInt(100)), null);
+            }else if (r.nextInt(100) % 4 == 2){
+                matchActor.tell(new Op.Multiply(r.nextInt(100), r.nextInt(100)), null);
+            }else if (r.nextInt(100) % 4 == 3){
+                matchActor.tell(new Op.Divide(r.nextInt(100), r.nextInt(100)), null);
             }
-
           }
         }, system.dispatcher());
 

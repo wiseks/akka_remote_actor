@@ -8,9 +8,8 @@ import scala.concurrent.duration.Duration;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class LookupActor extends UntypedActor {
-
     private final String path;
-    private ActorRef loginActor = null;
+    private ActorRef remoteActorRef = null;
 
     public LookupActor(String path) {
         this.path = path;
@@ -18,9 +17,8 @@ public class LookupActor extends UntypedActor {
     }
 
     private void sendIdentifyRequest() {
-        ActorSelection actorSelection =getContext().actorSelection(path);
+        ActorSelection actorSelection = getContext().actorSelection(path);
         actorSelection.tell("Pretty awesome feature", getSelf());
-
 
         actorSelection.tell(new Identify(path), getSelf());
         getContext().system().scheduler().scheduleOnce(Duration.create(3, SECONDS), getSelf(),
@@ -30,11 +28,11 @@ public class LookupActor extends UntypedActor {
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof ActorIdentity) {
-            loginActor = ((ActorIdentity) message).getRef();
-            if (loginActor == null) {
+            remoteActorRef = ((ActorIdentity) message).getRef();
+            if (remoteActorRef == null) {
                 System.out.println("Remote actor not available: " + path);
             } else {
-                getContext().watch(loginActor);
+                getContext().watch(remoteActorRef);
                 getContext().become(active, true);
             }
         } else if (message instanceof ReceiveTimeout) {
@@ -50,30 +48,34 @@ public class LookupActor extends UntypedActor {
         public void apply(Object message) {
             if (message instanceof Op.MathOp) {
                 // send message to server actor
-                loginActor.tell(message, getSelf());
+                remoteActorRef.tell(message, getSelf());
 
             } else if (message instanceof Op.AddResult) {
                 Op.AddResult result = (Op.AddResult) message;
                 System.out.printf("Add result: %d + %d = %d\n", result.getN1(),
                         result.getN2(), result.getResult());
-
             } else if (message instanceof Op.SubtractResult) {
                 Op.SubtractResult result = (Op.SubtractResult) message;
                 System.out.printf("Sub result: %d - %d = %d\n", result.getN1(),
                         result.getN2(), result.getResult());
-
+            } else if (message instanceof Op.MultiplicationResult) {
+                Op.MultiplicationResult result = (Op.MultiplicationResult) message;
+                System.out.printf("Multi result: %d * %d = %d\n", result.getN1(),
+                        result.getN2(), result.getResult());
+            } else if (message instanceof Op.DivisionResult) {
+                Op.DivisionResult result = (Op.DivisionResult) message;
+                System.out.printf("Div result: %.0f / %d = %.2f\n", result.getN1(),
+                        result.getN2(), result.getResult());
             } else if (message instanceof Terminated) {
                 System.out.println("Calculator terminated");
                 sendIdentifyRequest();
                 getContext().unbecome();
-
             } else if (message instanceof ReceiveTimeout) {
                 // ignore
                 System.out.println("get msg ReceiveTimeout");
             } else {
                 unhandled(message);
             }
-
         }
     };
 }

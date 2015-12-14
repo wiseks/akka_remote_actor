@@ -1,0 +1,5 @@
+test remote actor OK,
+1)3 types of server,Login Server for method add and sub,Match Server for Multi and Div;
+  the Agent Server use remote actor selector to use the two servers;
+2)Agent Server generate radom num,to use one of the math method,which is on one of the servers;
+3)this solution test OK,when the three servers in the same machine or in different machine
