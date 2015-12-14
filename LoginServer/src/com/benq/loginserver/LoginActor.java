@@ -21,6 +21,10 @@ public class LoginActor extends UntypedActor {
             Op.SubtractResult result = new Op.SubtractResult(subtract.getN1(),
                     subtract.getN2(), subtract.getN1() - subtract.getN2());
             getSender().tell(result, getSelf());
+        } else if (message instanceof Op.Integral) {
+            //
+
+
         } else {
             unhandled(message);
         }

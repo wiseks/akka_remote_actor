@@ -17,8 +17,18 @@ public class ApplicationLoginServerMain {
     }
 
     public static void startLoginSystem() {
-        Config cfg = ConfigFactory.load(Constant.LoginActorCfgName);
-        ActorSystem actorSystem = ActorSystem.create(Constant.LoginActorSysName, cfg);
+        //user cfg
+        String serverHostName= UserConfig.getConfig().getString("akka.remote.netty.tcp.hostname");
+        int serverPort= UserConfig.getConfig().getInt("akka.remote.netty.tcp.port");
+
+        //app resource cfg
+        Config appCfg = ConfigFactory.load(Constant.LoginActorCfgName);
+        final Config finalConfig = ConfigFactory.parseString(
+                "akka.remote.netty.tcp.hostname=" + serverHostName)
+                .withFallback(ConfigFactory.parseString("akka.remote.netty.tcp.port=" + serverPort))
+                .withFallback(appCfg);
+
+        ActorSystem actorSystem = ActorSystem.create(Constant.LoginActorSysName, finalConfig);
         System.out.println("Started Login System");
 
         final ActorRef loginActor = actorSystem.actorOf(Props.create(LoginActor.class),

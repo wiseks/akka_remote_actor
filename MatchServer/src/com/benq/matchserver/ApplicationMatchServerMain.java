@@ -14,8 +14,18 @@ public class ApplicationMatchServerMain {
     }
 
     public static void startMatchSystem() {
-        Config cfg = ConfigFactory.load(Constant.MatchActorCfgName);
-        ActorSystem actorSystem = ActorSystem.create(Constant.MatchActorSysName, cfg);
+        //user cfg
+        String serverHostName= UserConfig.getConfig().getString("akka.remote.netty.tcp.hostname");
+        int serverPort= UserConfig.getConfig().getInt("akka.remote.netty.tcp.port");
+
+        //app resource cfg
+        Config appCfg = ConfigFactory.load(Constant.MatchActorCfgName);
+        final Config finalConfig = ConfigFactory.parseString(
+                "akka.remote.netty.tcp.hostname=" + serverHostName)
+                .withFallback(ConfigFactory.parseString("akka.remote.netty.tcp.port=" + serverPort))
+                .withFallback(appCfg);
+
+        ActorSystem actorSystem = ActorSystem.create(Constant.MatchActorSysName, finalConfig);
         System.out.println("Started Match System");
 
         final ActorRef matchActor = actorSystem.actorOf(Props.create(MatchActor.class),

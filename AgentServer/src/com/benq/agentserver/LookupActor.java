@@ -67,7 +67,7 @@ public class LookupActor extends UntypedActor {
                 System.out.printf("Div result: %.0f / %d = %.2f\n", result.getN1(),
                         result.getN2(), result.getResult());
             } else if (message instanceof Terminated) {
-                System.out.println("Calculator terminated");
+                System.out.println("Remote Actor terminated");
                 sendIdentifyRequest();
                 getContext().unbecome();
             } else if (message instanceof ReceiveTimeout) {
